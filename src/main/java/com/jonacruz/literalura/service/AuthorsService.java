@@ -3,6 +3,7 @@ package com.jonacruz.literalura.service;
 import com.jonacruz.literalura.model.BookData;
 import com.jonacruz.literalura.model.Books;
 import com.jonacruz.literalura.model.PersonModel;
+import com.jonacruz.literalura.model.PersonsData;
 import com.jonacruz.literalura.repository.AuthorsRepository;
 import com.jonacruz.literalura.repository.BooksRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,23 +40,28 @@ public class AuthorsService {
     }
 
     public void savePerson(BookData data) {
-       var authorData = data.authors().get(0);
-        var newAuhtorData = checkExistAuthor(authorData.name());
+        var authorData = saveAuthor(data.authors().get(0));
+
         var newBookData = checkExistBook(data.title());
-       if (newAuhtorData == null){
-           authorsRepository.save(new PersonModel(authorData));
-           savePerson(data);
-           System.out.println("Se ha registrado un nuevo autor");
-       }
-
        if(newBookData == null) {
-           assert newAuhtorData != null;
-           newAuhtorData.setNewBook(new Books(data));
-            authorsRepository.save(newAuhtorData);
+           authorData.setNewBook(new Books(data));
+            authorsRepository.save(authorData);
            System.out.println("Se ha registrado un nuevo libro");
+           newBookData = checkExistBook(data.title());
        }
-
+     //   System.out.println(newBookData);
     }
+
+    private PersonModel saveAuthor(PersonsData authorData) {
+        var newAuthor = checkExistAuthor(authorData.name());
+        if (newAuthor == null){
+            authorsRepository.save(new PersonModel(authorData));
+            System.out.println("Se ha registrado un nuevo autor");
+            newAuthor = saveAuthor(authorData);
+        }
+        return newAuthor;
+    }
+
 
     private  PersonModel checkExistAuthor(String name){
         dbAuthors = authorsRepository.findAll();
